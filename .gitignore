@@ -66,3 +66,15 @@ publish/
 **/node_modules/
 site/docs/.vitepress/cache/
 site/docs/.vitepress/dist/
+
+# Python / AI module
+ai/__pycache__/
+ai/*.pyc
+ai/.env
+ai/index.json
+ai/venv/
+ai/.venv/
+
+# C# autocomplete module
+autocomplete/obj/
+autocomplete/bin/

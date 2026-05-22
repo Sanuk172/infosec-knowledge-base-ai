@@ -37,9 +37,6 @@ export default defineConfig({
     search: {
       provider: "local"
     },
-    socialLinks: [
-      { icon: "github", link: "https://github.com/Sanuk172/web-site_with_ai" }
-    ],
     footer: {
       message: "Контент добавляется командой проекта",
       copyright: "Copyright © 2026"
