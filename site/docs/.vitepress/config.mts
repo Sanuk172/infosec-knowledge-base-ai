@@ -1,7 +1,7 @@
 import { defineConfig } from "vitepress";
 
 export default defineConfig({
-  base: "/web-site_with_ai/",
+  base: "/infosec-knowledge-base-ai/",
   lang: "ru-RU",
   title: "Knowledge Base",
   description: "Каркас базы знаний с AI-ассистентом",
