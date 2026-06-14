@@ -1,60 +1,69 @@
 """
-Индексатор Markdown-страниц базы знаний.
-Читает .md файлы из site/docs, разбивает по заголовкам на чанки
-и сохраняет векторный индекс для RAG-поиска.
+Индексатор базы знаний.
+Читает Markdown-файлы угроз и сохраняет чанки в index.json.
+Запуск: python indexer.py
 """
 
-import os
 import json
 import pathlib
-from dotenv import load_dotenv
+import re
 
-load_dotenv()
-
-DOCS_PATH = pathlib.Path(os.getenv("DOCS_PATH", "../site/docs"))
-INDEX_PATH = pathlib.Path("index.json")
+THREATS_DIR = pathlib.Path("../site/docs/threats")
+INDEX_FILE = pathlib.Path("index.json")
 
 
-def split_by_headings(text: str, source: str) -> list[dict]:
+def parse_md(path: pathlib.Path) -> list[dict]:
+    text = path.read_text(encoding="utf-8")
+    # убираем frontmatter
+    text = re.sub(r"^---.*?---\s*", "", text, flags=re.DOTALL)
+
     chunks = []
-    current_heading = "Введение"
+    current_heading = path.stem
     current_lines = []
 
     for line in text.splitlines():
         if line.startswith("#"):
             if current_lines:
-                chunks.append({
-                    "source": source,
-                    "heading": current_heading,
-                    "text": "\n".join(current_lines).strip(),
-                })
+                body = "\n".join(current_lines).strip()
+                if body:
+                    chunks.append({
+                        "file": path.name,
+                        "heading": current_heading,
+                        "text": body,
+                    })
             current_heading = line.lstrip("#").strip()
             current_lines = []
         else:
             current_lines.append(line)
 
     if current_lines:
-        chunks.append({
-            "source": source,
-            "heading": current_heading,
-            "text": "\n".join(current_lines).strip(),
-        })
+        body = "\n".join(current_lines).strip()
+        if body:
+            chunks.append({
+                "file": path.name,
+                "heading": current_heading,
+                "text": body,
+            })
 
-    return [c for c in chunks if c["text"]]
-
-
-def build_index() -> list[dict]:
-    chunks = []
-    for md_file in DOCS_PATH.rglob("*.md"):
-        if ".vitepress" in md_file.parts:
-            continue
-        relative = str(md_file.relative_to(DOCS_PATH))
-        text = md_file.read_text(encoding="utf-8")
-        chunks.extend(split_by_headings(text, relative))
-
-    INDEX_PATH.write_text(json.dumps(chunks, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Индекс построен: {len(chunks)} чанков → {INDEX_PATH}")
     return chunks
+
+
+def build_index():
+    if not THREATS_DIR.exists():
+        print(f"Папка не найдена: {THREATS_DIR}")
+        return
+
+    all_chunks = []
+    files = sorted(THREATS_DIR.glob("ubi-*.md"))
+
+    for f in files:
+        all_chunks.extend(parse_md(f))
+
+    INDEX_FILE.write_text(
+        json.dumps(all_chunks, ensure_ascii=False, indent=2),
+        encoding="utf-8"
+    )
+    print(f"Индекс построен: {len(files)} угроз, {len(all_chunks)} чанков -> {INDEX_FILE}")
 
 
 if __name__ == "__main__":

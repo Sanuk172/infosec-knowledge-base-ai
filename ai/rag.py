@@ -1,33 +1,41 @@
 """
-RAG-поиск по индексу базы знаний с использованием Gemini.
-Принимает вопрос, находит релевантные чанки и генерирует ответ.
+RAG-модуль: поиск по базе угроз + генерация ответа через Gemini.
 """
 
 import json
 import os
 import pathlib
-import google.generativeai as genai
+import re
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-INDEX_PATH = pathlib.Path("index.json")
+INDEX_FILE = pathlib.Path("index.json")
 TOP_K = 5
+
+_client = None
+
+def get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    return _client
 
 
 def load_index() -> list[dict]:
-    if not INDEX_PATH.exists():
-        raise FileNotFoundError("Индекс не найден. Сначала запустите indexer.py")
-    return json.loads(INDEX_PATH.read_text(encoding="utf-8"))
+    if not INDEX_FILE.exists():
+        raise FileNotFoundError(
+            "index.json не найден. Сначала запустите: python indexer.py"
+        )
+    return json.loads(INDEX_FILE.read_text(encoding="utf-8"))
 
 
-def simple_search(query: str, chunks: list[dict], top_k: int = TOP_K) -> list[dict]:
-    query_words = set(query.lower().split())
+def search(query: str, chunks: list[dict], top_k: int = TOP_K) -> list[dict]:
+    query_words = set(re.findall(r"\w+", query.lower()))
     scored = []
     for chunk in chunks:
-        text_words = set(chunk["text"].lower().split())
+        text_words = set(re.findall(r"\w+", chunk["text"].lower()))
         score = len(query_words & text_words)
         if score > 0:
             scored.append((score, chunk))
@@ -35,37 +43,39 @@ def simple_search(query: str, chunks: list[dict], top_k: int = TOP_K) -> list[di
     return [c for _, c in scored[:top_k]]
 
 
-def ask(question: str) -> str:
-    chunks = load_index()
-    relevant = simple_search(question, chunks)
+def ask(question: str, chunks: list[dict] | None = None) -> str:
+    if chunks is None:
+        chunks = load_index()
+
+    relevant = search(question, chunks)
 
     if not relevant:
-        return "В базе знаний не найдено материалов по данному вопросу."
+        return (
+            "В базе знаний не найдено материалов по данному вопросу. "
+            "Попробуйте переформулировать запрос."
+        )
 
     context = "\n\n---\n\n".join(
-        f"[{c['source']} / {c['heading']}]\n{c['text']}" for c in relevant
+        f"[{c['file']} / {c['heading']}]\n{c['text']}"
+        for c in relevant
     )
 
-    prompt = (
-        "Ты — ассистент базы знаний по информационной безопасности. "
-        "Отвечай только на основе предоставленного контекста. "
-        "Если ответа в контексте нет — так и скажи.\n\n"
-        f"Контекст:\n{context}\n\n"
-        f"Вопрос: {question}\n\nОтвет:"
-    )
+    prompt = f"""Ты — AI-ассистент базы знаний по информационной безопасности.
+Отвечай строго на основе предоставленного контекста из банка угроз ФСТЭК.
+Если ответа в контексте нет — честно скажи об этом.
+Отвечай на русском языке, кратко и по существу.
 
-    model = genai.GenerativeModel(MODEL)
-    response = model.generate_content(prompt)
+Контекст:
+{context}
 
-    sources = list({f"{c['source']} ({c['heading']})" for c in relevant})
-    sources_text = "\n".join(f"• {s}" for s in sources)
+Вопрос пользователя: {question}
 
-    return f"{response.text}\n\n**Источники:**\n{sources_text}"
+Ответ:"""
 
+    model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    response = get_client().models.generate_content(model=model, contents=prompt)
 
-if __name__ == "__main__":
-    while True:
-        q = input("\nВопрос (или 'выход'): ").strip()
-        if q.lower() in ("выход", "exit", "quit"):
-            break
-        print(ask(q))
+    sources = list(dict.fromkeys(c["file"].replace(".md", "").upper() for c in relevant))
+    sources_text = ", ".join(sources)
+
+    return f"{response.text.strip()}\n\n**Источники:** {sources_text}"
