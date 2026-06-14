@@ -10,16 +10,24 @@ export default defineConfig({
     logo: "/logo.svg",
     nav: [
       { text: "Главная", link: "/" },
+      { text: "Угрозы БДУ", link: "/threats/" },
       { text: "Разделы", link: "/guide/" },
       { text: "AI Ассистент", link: "/assistant/" }
     ],
     sidebar: [
       {
-        text: "Старт",
+        text: "База угроз ФСТЭК",
+        collapsed: false,
+        items: [
+          { text: "Все угрозы", link: "/threats/" }
+        ]
+      },
+      {
+        text: "Разделы",
         items: [
           { text: "Обзор", link: "/guide/" },
-          { text: "Раздел 1", link: "/guide/section-1" },
-          { text: "Раздел 2", link: "/guide/section-2" }
+          { text: "Теория и стандарты", link: "/guide/section-1" },
+          { text: "Практика и инструкции", link: "/guide/section-2" }
         ]
       },
       {
