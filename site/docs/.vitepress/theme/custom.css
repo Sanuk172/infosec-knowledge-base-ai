@@ -1,35 +1,154 @@
+/* ── Цвета бренда ── */
 :root {
-  --vp-c-brand-1: #5b7cfa;
-  --vp-c-brand-2: #7a94ff;
-  --vp-c-brand-3: #3f5de2;
-  --vp-c-brand-soft: rgba(91, 124, 250, 0.16);
+  --vp-c-brand-1: #4f6ef7;
+  --vp-c-brand-2: #7089ff;
+  --vp-c-brand-3: #3452d9;
+  --vp-c-brand-soft: rgba(79, 110, 247, 0.14);
 }
 
+/* ── Hero: градиентный заголовок ── */
 .VPHomeHero .name {
-  background: linear-gradient(120deg, #5b7cfa 20%, #00c2a8 80%);
+  background: linear-gradient(135deg, #4f6ef7 0%, #00c2a8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
+.VPHomeHero .text {
+  font-size: 1.6rem !important;
+}
+
+/* ── Карточки на главной ── */
 .kb-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
 }
 
 .kb-card {
   border: 1px solid var(--vp-c-divider);
   background: var(--vp-c-bg-soft);
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 20px;
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+
+.kb-card:hover {
+  box-shadow: 0 6px 24px rgba(79, 110, 247, 0.12);
+  transform: translateY(-2px);
+  border-color: var(--vp-c-brand-1);
+}
+
+.kb-card-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  display: block;
 }
 
 .kb-card h3 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .kb-muted {
   color: var(--vp-c-text-2);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Блок статистики ── */
+.kb-stats {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin: 32px 0;
+  padding: 24px;
+  background: var(--vp-c-bg-soft);
+  border-radius: 16px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.kb-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kb-stat-num {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #4f6ef7, #00c2a8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+
+.kb-stat-label {
+  font-size: 0.85rem;
+  color: var(--vp-c-text-2);
+}
+
+/* ── Блок шагов ── */
+.kb-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.kb-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--vp-c-bg-soft);
+  border-radius: 12px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.kb-step-num {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: var(--vp-c-brand-1);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kb-step-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  padding-top: 3px;
+}
+
+/* ── Таблица угроз ── */
+.threats-table table {
+  width: 100%;
+  font-size: 0.88rem;
+}
+
+.threats-table td:first-child {
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+}
+
+/* ── Страница угрозы ── */
+.vp-doc h1 {
+  border-bottom: 2px solid var(--vp-c-brand-soft);
+  padding-bottom: 12px;
+}
+
+/* ── Чат ассистента — доп. стили ── */
+.ai-chat {
+  margin-top: 8px;
 }
