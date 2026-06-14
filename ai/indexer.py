@@ -1,6 +1,6 @@
 """
 Индексатор базы знаний.
-Читает Markdown-файлы угроз и сохраняет чанки в index.json.
+Каждая угроза → один чанк со всеми полями: название, описание, источник, объект.
 Запуск: python indexer.py
 """
 
@@ -12,40 +12,42 @@ THREATS_DIR = pathlib.Path("../site/docs/threats")
 INDEX_FILE = pathlib.Path("index.json")
 
 
-def parse_md(path: pathlib.Path) -> list[dict]:
+def parse_threat(path: pathlib.Path) -> dict | None:
     text = path.read_text(encoding="utf-8")
-    # убираем frontmatter
     text = re.sub(r"^---.*?---\s*", "", text, flags=re.DOTALL)
 
-    chunks = []
-    current_heading = path.stem
+    fields = {}
+    current_heading = None
     current_lines = []
 
     for line in text.splitlines():
         if line.startswith("#"):
-            if current_lines:
-                body = "\n".join(current_lines).strip()
-                if body:
-                    chunks.append({
-                        "file": path.name,
-                        "heading": current_heading,
-                        "text": body,
-                    })
+            if current_heading:
+                fields[current_heading] = "\n".join(current_lines).strip()
             current_heading = line.lstrip("#").strip()
             current_lines = []
         else:
             current_lines.append(line)
 
-    if current_lines:
-        body = "\n".join(current_lines).strip()
-        if body:
-            chunks.append({
-                "file": path.name,
-                "heading": current_heading,
-                "text": body,
-            })
+    if current_heading:
+        fields[current_heading] = "\n".join(current_lines).strip()
 
-    return chunks
+    title = next((k for k in fields.keys() if "УБИ" in k), "")
+    description = fields.get("Описание", "")
+    source = fields.get("Источник угрозы", "")
+    target = fields.get("Объект воздействия", "")
+    props = fields.get("Нарушаемые свойства безопасности", "")
+
+    if not title:
+        return None
+
+    full_text = f"{title}\n\nОписание: {description}\n\nИсточник угрозы: {source}\n\nОбъект воздействия: {target}\n\nНарушаемые свойства: {props}"
+
+    return {
+        "file": path.name,
+        "heading": title,
+        "text": full_text,
+    }
 
 
 def build_index():
@@ -53,17 +55,19 @@ def build_index():
         print(f"Папка не найдена: {THREATS_DIR}")
         return
 
-    all_chunks = []
+    chunks = []
     files = sorted(THREATS_DIR.glob("ubi-*.md"))
 
     for f in files:
-        all_chunks.extend(parse_md(f))
+        chunk = parse_threat(f)
+        if chunk:
+            chunks.append(chunk)
 
     INDEX_FILE.write_text(
-        json.dumps(all_chunks, ensure_ascii=False, indent=2),
+        json.dumps(chunks, ensure_ascii=False, indent=2),
         encoding="utf-8"
     )
-    print(f"Индекс построен: {len(files)} угроз, {len(all_chunks)} чанков -> {INDEX_FILE}")
+    print(f"Индекс построен: {len(chunks)} угроз -> {INDEX_FILE}")
 
 
 if __name__ == "__main__":
