@@ -10,41 +10,22 @@ export default defineConfig({
     logo: "/logo.svg",
     nav: [
       { text: "Главная", link: "/" },
-      { text: "Угрозы БДУ", link: "/threats/" },
-      { text: "Разделы", link: "/guide/" },
+      { text: "Базы данных", link: "/threats/" },
       { text: "AI Ассистент", link: "/assistant/" }
     ],
     sidebar: [
       {
-        text: "База угроз ФСТЭК",
+        text: "Базы данных",
         collapsed: false,
         items: [
-          { text: "Все угрозы", link: "/threats/" }
-        ]
-      },
-      {
-        text: "Разделы",
-        items: [
-          { text: "Обзор", link: "/guide/" },
-          { text: "Теория и стандарты", link: "/guide/section-1" },
-          { text: "Практика и инструкции", link: "/guide/section-2" }
-        ]
-      },
-      {
-        text: "Справка",
-        items: [
-          { text: "FAQ", link: "/reference/faq" },
-          { text: "Шаблон статьи", link: "/reference/template" }
+          { text: "Угрозы БДУ ФСТЭК", link: "/threats/" }
         ]
       },
       {
         text: "Ассистент",
-        items: [{ text: "О модуле", link: "/assistant/" }]
+        items: [{ text: "AI Ассистент", link: "/assistant/" }]
       }
     ],
-    search: {
-      provider: "local"
-    },
     footer: {
       message: "Контент добавляется командой проекта",
       copyright: "Copyright © 2026"
